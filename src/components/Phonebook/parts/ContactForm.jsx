@@ -1,33 +1,34 @@
 import { useState } from 'react';
 import css from './/ContactForm.module.css';
-import { useSelector, useDispatch } from 'react-redux';
-import { addContacts,  } from 'redux/store';
+import {
+   useFetchContactsQuery,
+   useAddContactMutation,
+} from 'redux/dataContacts';
 
-function ContactForm() {
+const ContactForm = () => {
+   const [addContact] = useAddContactMutation();
+   const { data } = useFetchContactsQuery();
+
    const [name, setName] = useState('');
    const [number, setNumber] = useState('');
-   const value = useSelector(state => state.contacts)
-
-   const dispatch = useDispatch();
-
 
    function handelMessageChange(e) {
       const { name, value } = e.currentTarget;
       switch (name) {
          case 'name':
-            setName(value)
+            setName(value);
             break;
          case 'number':
-            setNumber(value)
+            setNumber(value);
             break;
          default:
             break;
       }
    }
 
-   function addContact (e) {
+   function sentContact(e) {
       e.preventDefault();
-      const alreadyHas = value.map(contact => {
+      const alreadyHas = data.map(contact => {
          return contact.name;
       });
       if (alreadyHas.includes(name)) {
@@ -35,21 +36,26 @@ function ContactForm() {
          alert(name + ' is already in contacts');
          return;
       }
-      dispatch(addContacts({name, number}))
+      handelAddContact({ name, phone: number });
       reset();
-   };
-
-
-
+   }
 
    function reset() {
-      setName('')
-      setNumber('')
+      setName('');
+      setNumber('');
    }
+
+   const handelAddContact = async values => {
+      try {
+         await addContact(values);
+      } catch (error) {
+         console.log('error', error);
+      }
+   };
 
    return (
       <div>
-         <form className={css.form__addContacts} onSubmit={ addContact}>
+         <form className={css.form__addContacts} onSubmit={sentContact}>
             <label className={css.form__label}>
                <p className={css.form__text}>Name</p>
                <input
@@ -83,6 +89,6 @@ function ContactForm() {
          </form>
       </div>
    );
-}
+};
 
 export default ContactForm;
